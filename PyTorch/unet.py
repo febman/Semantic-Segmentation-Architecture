@@ -3,7 +3,8 @@ from torch import nn
 import torch.nn.functional as F
 from torchvision import transforms, datasets
 
-
+import torchvision.transforms as transforms
+from PIL import Image
 
 train_transform = transforms.Compose([
         transforms.Resize(224),             # takes PIL image as input and outputs PIL image
@@ -24,22 +25,26 @@ valid_transform = transforms.Compose([  # for validation we don't randomize or a
 
 
 # Just implement __getitem__ and __len__
-class DummyDataset(torch.utils.data.Dataset):
-    def __init__(self, size=(3, 224, 224), num_samples=1000, num_classes=3):
-        self.images = torch.randn(num_samples, *size)
-        self.labels = torch.randint(0, num_classes, (num_samples,))
-        # this dataset, doesn't need transforms
-        # because it is already in the correct size and format
+class TestImageFolder(data.Dataset):
+    def __init__(self, root, transform=None):
+        images = []
+        for filename in sorted(glob.glob(test_path + "*.jpg")):
+            images.append('{}'.format(filename))
+
+        self.root = root
+        self.imgs = images
+        self.transform = transform
 
     def __getitem__(self, index):
-        return self.images[index, ...], self.labels[index]
+        filename = self.imgs[index]
+        img = Image.open(os.path.join(self.root, filename))
+        if self.transform is not None:
+            img = self.transform(img)
+        return img, filename
 
     def __len__(self):
-        return self.images.size(0)
+        return len(self.imgs)
 
-# Or, we can use `torchvision.datasets.ImageFolder`
-dataset = datasets.ImageFolder(root='./all/train/',
-                               transform=train_transform)
 
 # here you should split this dataset into training and validation
 def random_split(dataset, split_frac):
